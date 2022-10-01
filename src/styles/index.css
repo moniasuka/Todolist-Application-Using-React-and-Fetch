@@ -13,18 +13,24 @@
 button:hover *{
     opacity: 0.8;
     transition: all .5s;
-    border: 1px solid black;
     justify-content: flex-end;
     align-items: center;
     width: 100%;
     height: 100%;
+    color: red;
     }
     
     
 body{
 font-family: 'Raleway', sans-serif;
-font-family: 'Roboto', sans-serif;
+font-size: 25px;
+font-weight:bold;
+color: rgb(37, 37, 37);
+}
 
+input {
+
+    
 }
 
 h1{
@@ -32,3 +38,11 @@ h1{
     font-size: 100px;
 }
 
+p {
+    font-family: 'Raleway', sans-serif;
+    font-family: 'Roboto', sans-serif;
+    color: rgb(192, 173, 173);
+    font-size: 20px;
+    text-align: left;
+    font-weight:lighter;
+}
