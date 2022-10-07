@@ -8,12 +8,12 @@ export const Todo = () => {
   //Poder recorrer los arreglos usamos .map((item, index)=>{return()})
   //Podemos remover .filter((item, index)=>{return(index != 2)})
 
-  //se introducen los hooks para lograr cambios en el arreglo (agregar entries o borrar entries)
-
+  //se introducen los hooks para lograr cambios en el arreglo (agregar o borrar tareas)
   const [listTodos, setListTodos] = useState([]);
+  const [count, setCount] = useState(0);
 
 
-  //se introducen los hooks para lograr cambios a traves de las APIs
+  //se introduce el hook para lograr cambios al usuario a traves de las APIs
   const BASE_URL = "https://assets.breatheco.de/apis/fake/todos/";
   const [usuario, setUsuario] = useState("");
 
@@ -66,10 +66,8 @@ export const Todo = () => {
         (err) => console.log(err);
     }};
 
-    
-    useEffect(() => {
-        pullListaTareas();
-      }, [usuario]);
+    // cada vez que se carga la pagina se hace un pull de la lista de tareas que el usuario tiene
+    useEffect(() => { pullListaTareas()}, [usuario]);
 
     // funcion para eliminar tareas con APIs
       const eliminarTarea = async (indiceTarea) => {
@@ -105,76 +103,69 @@ export const Todo = () => {
         }
       };
 
-          // funcion para agregar tareas con APIs
-         const agregarTarea = async (e) => {            
-              let arrAux = listTodos.slice();
-              arrAux.push({
-                label: e,
-                done: false
-              });
-              console.log("esta es la tarea nueva: ", arrAux)
-              setListTodos(arrAux);
-              console.log(usuario,e, arrAux)
-              pullListaTareas();              
+    // funcion para agregar tareas con APIs
+      const agregarTarea = async (e) => {            
+          let arrAux = listTodos.slice();
+          arrAux.push({
+            label: e,
+            done: false
+          });
+          console.log("esta es la tarea nueva: ", arrAux)
+          setListTodos(arrAux);
+          console.log(usuario,e, arrAux)
+          pullListaTareas();       
 
-              
-              let URI = `${BASE_URL}user/${usuario}`;
-              try {
-                let respuesta = await fetch(URI, {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(arrAux),
-                });
-                  console.log("este es el resultaod de JSON stringify: ", JSON.stringify(arrAux))
-                if (respuesta.ok) {
-                  console.log("Se agregó la tarea exitosamente");             
-                  pullListaTareas();
-                } else {
-                  console.log("error");
-                }
-              } catch {
-                (e) => console.log(e);
-              }
-               
-          };
-
+          let URI = `${BASE_URL}user/${usuario}`;
+          try {
+            let respuesta = await fetch(URI, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(arrAux),
+            });
+              console.log("este es el resultaod de JSON stringify: ", JSON.stringify(arrAux))
+            if (respuesta.ok) {
+              console.log("Se agregó la tarea exitosamente");             
+              pullListaTareas();
+            } else {
+              console.log("error");
+            }
+          } catch {
+            (e) => console.log(e);
+          }
+            
+      };
            
 
-           // esta funcion borrar todas las tareas juntas                    
-              const borrarTodasTareas = async (e) => {
-              let URI = `${BASE_URL}user/${usuario}`;
-              let respuesta =  await fetch(URI , {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json"},
-                body:[],
-              }); 
-              pullListaTareas();             
-              if (respuesta.ok) {
-                alert("Se vació la lista de tareas exitosamente");
-              } else {
-                console.log("error", respuesta);
+    //funcion para borrar todas las tareas a la vez                  
+      const borrarTodasTareas = async (e) => {
+      let URI = `${BASE_URL}user/${usuario}`;
+      let respuesta =  await fetch(URI , {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json"},
+        body:[],
+      }); 
+      pullListaTareas();             
+      if (respuesta.ok) {
+        alert("Se vació la lista de tareas exitosamente");
+      } else {
+        console.log("error", respuesta);
 
-              }        
-            }
+      }        
+    };
 
-
-
-
-  //se introduce el hook para el contador de entries en la lista
-  const [count, setCount] = useState(0);
-
-
-  //creacion de input para que el usuario introduzca y/o borre entries
-  //el elemento input incluye un evento que se ejecuta cuando el usuario presiona enter, esto crea una copia del arreglo original con la funcion .slice() y guarda la copia en el arreglo auxiliar
-  //al arreglo auxiliar se le agrega el valor introducido por el usuario con ayuda de la funcion .push() y e.target.value , que guarda el valor agregado por el usuario
-  //despues de esto, se pasan los datos del arreglo auxiliar de vuelta al arreglo listTodos y se resetea el vaor de e.target.value a ="" para que el input deje de mostrar el entry del usuario
+  //dentro del return:
+  //creacion de input para que el usuario introduzca y/o borre tareas
+  //el input incluye un evento que cuando se ejecuta (al presionar enter), le asigna lo que se haya escrito a la constante usuario.
+  // luego se incluye un botón para crear un usuario nuevo a través del evento onClick
+  // después se incuye otro input para que el usuario pueda agregar tareas nuevas y éstas se agreguen al arreglo original al presionar enter
+  //al final se agrega el contador para llevar cuenta de cuántas tareas quedan después de agregar o eliminar y al lado, un botón para eliminar todas las tareas a la vez si el usuario lo desea
 
   return (
 
 
     <div className="card d-inline-flex p-2 w-50">
      
-    {/*Este input es para colocar un usuario y guardarlo en Usuario para luego verificar
+    {/*Este input es para colocar un nombre de usuario y guardarlo en la constante Usuario para luego verificar
      si tiene una lista de tareas a desplegar en pantalla */}
       <input
         placeholder="Type Username"
