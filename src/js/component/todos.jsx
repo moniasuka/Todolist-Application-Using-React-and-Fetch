@@ -11,15 +11,18 @@ export const Todo = () => {
   //se introducen los hooks para lograr cambios en el arreglo (agregar entries o borrar entries)
 
   const [listTodos, setListTodos] = useState([]);
-  const [todo, setTodo] = useState("");
+
 
   //se introducen los hooks para lograr cambios a traves de las APIs
   const BASE_URL = "https://assets.breatheco.de/apis/fake/todos/";
   const [usuario, setUsuario] = useState("");
 
   //Funcion para crear usuario
-  const crearUsuario = async () => {
+  const crearUsuario = async (e) => {
     let URI = `${BASE_URL}user/${usuario}`;
+    let aux = e.target.value;
+    setUsuario(aux);
+    console.log(aux);
 
     try {
       let respuesta = await fetch(URI, {
@@ -49,10 +52,12 @@ export const Todo = () => {
         let apirespuesta = await fetch(URI);
         if (apirespuesta.ok) {
         let respuestaJSON = await apirespuesta.json();
-        console.log(respuestaJSON);
-        console.log(listTodos);
+        console.log("1" , respuestaJSON);
+        console.log("2", listTodos);
         setListTodos(respuestaJSON);
-        console.log(listTodos);
+        console.log("3", listTodos);       
+        setCount(respuestaJSON.length);
+        console.log("4", count)
         } else {
         console.log("respuesta fallida");
         setListTodos([]);
@@ -73,8 +78,7 @@ export const Todo = () => {
         let auxArr = listTodos.filter((tarea, index) => {
           return index !== indiceTarea;
         });
-
-        console.log(auxArr);
+       
         if (auxArr.length > 0) {
           try {
             let respuesta = await fetch(URI, {
@@ -102,33 +106,56 @@ export const Todo = () => {
       };
 
           // funcion para agregar tareas con APIs
-     /*     const agregarTarea = async () => {
-            let URI = `${BASE_URL}user/${usuario}`;
-    
-                  let arrAux = listTodos.slice();
-                  arrAux.push(e.target.value);
-                  setListTodos(arrAux);
-                  e.target.value = "";
-            };
-            if (arrAux.length > 0) {
-                try {
-                    let respuesta = fetch(URI, {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(arrAux),
+         const agregarTarea = async (e) => {            
+              let arrAux = listTodos.slice();
+              arrAux.push({
+                label: e,
+                done: false
               });
-              if (respuesta.ok) {
-                console.log("Se agregó exitosamente la tarea");
-                pullListaTareas();
-              } else {
-                console.log("error");
-              }           
-            } catch {
-              (e) => console.log(e);
-            } }
+              console.log("esta es la tarea nueva: ", arrAux)
+              setListTodos(arrAux);
+              console.log(usuario,e, arrAux)
+              pullListaTareas();              
 
-    
-*/
+              
+              let URI = `${BASE_URL}user/${usuario}`;
+              try {
+                let respuesta = await fetch(URI, {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(arrAux),
+                });
+                  console.log("este es el resultaod de JSON stringify: ", JSON.stringify(arrAux))
+                if (respuesta.ok) {
+                  console.log("Se agregó la tarea exitosamente");             
+                  pullListaTareas();
+                } else {
+                  console.log("error");
+                }
+              } catch {
+                (e) => console.log(e);
+              }
+               
+          };
+
+           
+
+           // esta funcion borrar todas las tareas juntas                    
+              const borrarTodasTareas = async (e) => {
+              let URI = `${BASE_URL}user/${usuario}`;
+              let respuesta =  await fetch(URI , {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json"},
+                body:[],
+              }); 
+              pullListaTareas();             
+              if (respuesta.ok) {
+                alert("Se vació la lista de tareas exitosamente");
+              } else {
+                console.log("error", respuesta);
+
+              }        
+            }
 
 
 
@@ -136,26 +163,6 @@ export const Todo = () => {
   //se introduce el hook para el contador de entries en la lista
   const [count, setCount] = useState(0);
 
-  // Funcion para decrementar el count de entries en a lista en 1 (al ejecutar la funcion decrementCount como resultado del evento "deleteTodo" (presionar el boton con la x))
-  const decrementCount = () => {
-    // se actualiz el state a la variable count disminuyendo 1
-    setCount(count - 1);
-  };
-
-  // Funcion para incrementar el count de entries en a lista en 1 (al ejecutar la funcion .slice() y .push() como resultado del evento "onKeyup" (presionar y soltar la tecla enter) despues de que un valor fue introducido al input pr el usuario)
-  const incrementCount = () => {
-    // se actualiza el state a la variable count agregandole 1
-    setCount(count + 1);
-  };
-
-  //funcion creada para borrar tareas
-  const deleteTodo = (indiceTarea) => {
-    setListTodos((prevState) => {
-      return prevState.filter((item, index) => {
-        return index !== indiceTarea;
-      });
-    });
-  };
 
   //creacion de input para que el usuario introduzca y/o borre entries
   //el elemento input incluye un evento que se ejecuta cuando el usuario presiona enter, esto crea una copia del arreglo original con la funcion .slice() y guarda la copia en el arreglo auxiliar
@@ -167,7 +174,8 @@ export const Todo = () => {
 
     <div className="card d-inline-flex p-2 w-50">
      
-    
+    {/*Este input es para colocar un usuario y guardarlo en Usuario para luego verificar
+     si tiene una lista de tareas a desplegar en pantalla */}
       <input
         placeholder="Type Username"
         type="text"
@@ -179,21 +187,17 @@ export const Todo = () => {
           }
         }}
       />
-         {/*Este boton es para agregar usuarios nuevos */}
-        <button type="button" onClick={() => crearUsuario()}> Create username</button>
+         {/*Este boton es para agregar usuarios nuevos a traves de una API con fecth request*/}
+        <button type="button" onClick={(e) => crearUsuario(e)}> Create username</button>
 
-        {/*Este input es para agregar tareas nuevas y luego presionar enter*/}
-      <input
-        placeholder="What needs to be done?"
+        {/*Este input es para agregar tareas nuevas luego de presionar enter*/}
+      <input placeholder="What needs to be done?"
         type="text"
         onKeyUp={(e) => {
           if (e.keyCode == "13") {
-            let arrAux = listTodos.slice();
-            arrAux.push(e.target.value);
-            setListTodos(arrAux);
+            agregarTarea(e.target.value);
             e.target.value = "";
-            incrementCount();
-           // agregarTarea();
+            
           }
         }}
       />
@@ -202,25 +206,14 @@ export const Todo = () => {
         {listTodos.length > 0 && listTodos && listTodos != undefined ? (
           listTodos.map((tarea, index) => {
             return (
-              <>
-                <li
-                  className="list-group-item d-flex justify-content-between"
-                  key={index}
-                >
-                    {tarea.label}
-                  
-                  <button
-                    className="btn btn-outline-light"
-                    onClick={(e) => {
-                      deleteTodo(index);
-                      decrementCount();
-                      eliminarTarea(index);
-                    }}
-                  >
-                    <i className="fa fa-times"></i>
-                  </button>{" "}
+              
+                <li className="list-group-item d-flex justify-content-between" key={index}>
+                    {tarea.label}                  
+                    <button className="btn btn-outline-light" onClick={(e) => {eliminarTarea(index)}}>
+                      <i className="fa fa-times"></i>
+                    </button>
                 </li>
-              </>
+           
             );
           })
         ) : (
@@ -229,7 +222,11 @@ export const Todo = () => {
       </ul>
       <div>
         <p>{count} items left</p>
-      </div>
+      </div> 
+      <div>     
+        <button className="btn btn-outline-dark" 
+        onClick={(e)=> {borrarTodasTareas(e)}}>Empty this list</button>
+      </div> 
     </div>
   );
 };
